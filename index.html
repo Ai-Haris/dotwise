@@ -942,11 +942,11 @@ let state = {
 
 // Force latest branding/theme on any state (local OR cloud) — runs once per version
 function migrateState() {
-  if (!state.brand || state.brand < 4) {
+  if (!state.brand || state.brand < 5) {
     state.theme = 'dark';
     state.accent = '#6366f1';
     state.customTheme = null;
-    state.brand = 4;
+    state.brand = 5;
   }
 }
 
