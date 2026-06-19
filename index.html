@@ -2001,19 +2001,33 @@ document.getElementById('auth-logout').onclick = async () => {
 };
 document.getElementById('auth-syncnow').onclick = async () => { await pushNow(); await pullCloud(); toast('Synced'); };
 document.getElementById('auth-close2').onclick = closeAuth;
-document.getElementById('auth-offline').onclick = () => { closeAuth(); toast('Using offline mode on this device'); };
+document.getElementById('auth-offline').onclick = () => {
+  localStorage.setItem('dotwise-seen-auth', '1');
+  closeAuth(); toast('Using offline mode on this device');
+};
+
+// Show sign-in/up on first open (until they log in or choose offline)
+function maybePromptAuth() {
+  if (!currentUser && !localStorage.getItem('dotwise-seen-auth')) {
+    openAuthModal();
+  }
+}
 
 if (sb) {
   sb.auth.onAuthStateChange((event, session) => {
     currentUser = session && session.user ? session.user : null;
     setAuthAvatar();
-    if (currentUser) { closeAuth(); pullCloud(); }
+    if (currentUser) { localStorage.setItem('dotwise-seen-auth', '1'); closeAuth(); pullCloud(); }
   });
   sb.auth.getSession().then(({ data }) => {
     currentUser = data.session && data.session.user ? data.session.user : null;
     setAuthAvatar();
-    if (currentUser) pullCloud();
+    if (currentUser) { localStorage.setItem('dotwise-seen-auth', '1'); pullCloud(); }
+    else maybePromptAuth();
   });
+} else {
+  // Supabase unavailable — still prompt once on first open
+  setTimeout(maybePromptAuth, 600);
 }
 
 // ==================== PWA service worker ====================
