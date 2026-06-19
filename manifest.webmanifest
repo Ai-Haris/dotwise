@@ -1,0 +1,19 @@
+{
+  "name": "Dotwise — Habits, Goals & Focus",
+  "short_name": "Dotwise",
+  "description": "Track habits, goals and focus with a premium, fast, offline-first app.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1f1e1d",
+  "theme_color": "#1f1e1d",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

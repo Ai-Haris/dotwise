@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#1f1e1d" />
+<title>Dotwise — Habits, Goals & Focus</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23d97757'/><circle cx='34' cy='50' r='9' fill='%23fff'/><circle cx='62' cy='50' r='9' fill='%23fff' opacity='0.55'/></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Dotwise" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #1f1e1d;
+    --bg-2: #262422;
+    --card: #2b2826;
+    --card-2: #34302d;
+    --border: #423d39;
+    --text: #f5f1ec;
+    --text-dim: #b3aaa1;
+    --text-faint: #7d756c;
+    --accent: #d97757;
+    --accent-2: #e3927a;
+    --red: #f0876a;
+    --orange: #e8985c;
+    --yellow: #e6c454;
+    --green: #6bbf8a;
+    --blue: #6fa8dc;
+    --cyan: #5cc4c4;
+    --purple: #b88fd8;
+    --pink: #e088ad;
+  }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none;
+    letter-spacing: -0.01em;
+  }
+  body {
+    min-height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 100px;
+    position: relative;
+  }
+  /* On PC: center the mobile column with side rails so it reads as a phone app */
+  @media (min-width: 600px) {
+    html { background: #141312; }
+    body {
+      box-shadow: 0 0 0 1px var(--border), 0 30px 80px -20px rgba(0,0,0,.7);
+      min-height: 100dvh;
+    }
+    .nav { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+  }
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 6px;
+    position: sticky;
+    top: 0;
+    background: linear-gradient(180deg, var(--bg) 70%, transparent);
+    z-index: 50;
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 9px;
+    font-weight: 700; font-size: 16px; color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .logo-dot {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    box-shadow: 0 2px 10px rgba(217,119,87,.4);
+  }
+  .logo-dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #fff; }
+  .logo-dot::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.55); }
+  .logo b { font-weight: 800; }
+  .logo .light { color: var(--text-faint); font-weight: 600; }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--card); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; color: var(--text);
+    transition: transform .15s, background .2s;
+  }
+  .icon-btn:hover { background: var(--card-2); transform: translateY(-1px); }
+  .badge {
+    position: absolute; top: -2px; right: -2px;
+    background: var(--red); color: white; font-size: 10px;
+    border-radius: 10px; padding: 2px 5px; min-width: 16px; text-align: center;
+    font-weight: 600;
+  }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: #fff;
+    box-shadow: 0 2px 10px rgba(217,119,87,.35);
+  }
+  h1 { font-size: 24px; font-weight: 800; padding: 4px 18px 12px; letter-spacing: -0.6px; }
+
+  /* Tabs */
+  .view-tabs {
+    display: flex; gap: 3px; margin: 0 16px 14px;
+    background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 3px;
+  }
+  .view-tab {
+    flex: 1; padding: 8px 4px; border: none; background: transparent;
+    color: var(--text-dim); border-radius: 9px; font-weight: 600;
+    cursor: pointer; font-size: 12px; transition: all .25s cubic-bezier(0.16,1,0.3,1);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .view-tab.active {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 4px 12px -2px var(--accent);
+  }
+  .view-tab:active { transform: scale(0.96); }
+  .view-tab svg { width: 14px; height: 14px; }
+
+  /* Cards */
+  .container { padding: 0 16px; display: flex; flex-direction: column; gap: 11px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px; padding: 14px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.03) inset,
+                0 14px 32px -24px rgba(0,0,0,.55);
+    transition: transform .25s cubic-bezier(0.16,1,0.3,1), border-color .25s;
+  }
+  .card:hover { border-color: var(--text-faint); }
+  .container .card, .home-stats .stat-card, #home-today .card {
+    animation: cardIn .5s cubic-bezier(0.16,1,0.3,1) backwards;
+  }
+  .container .card:nth-child(1) { animation-delay: .02s; }
+  .container .card:nth-child(2) { animation-delay: .07s; }
+  .container .card:nth-child(3) { animation-delay: .12s; }
+  .container .card:nth-child(4) { animation-delay: .17s; }
+  .container .card:nth-child(5) { animation-delay: .22s; }
+  .container .card:nth-child(n+6) { animation-delay: .27s; }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .container .card, .home-stats .stat-card, #home-today .card { animation: none; }
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; gap: 8px;
+  }
+  .card-title {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 14px;
+    flex: 1; min-width: 0;
+  }
+  .card-title span:last-child {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .card-emoji { font-size: 18px; flex-shrink: 0; }
+  .card-emoji-img {
+    width: 24px; height: 24px; border-radius: 7px;
+    object-fit: cover; flex-shrink: 0; display: block;
+  }
+  /* Multi-count progress dots */
+  .dots { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--card-2); border: 1px solid var(--border);
+    transition: background .2s, transform .2s;
+  }
+  .dot.on { border-color: transparent; transform: scale(1.05); }
+  .card-meta {
+    display: flex; align-items: center; gap: 9px;
+    color: var(--text-dim); font-size: 12px; font-weight: 600;
+    flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
+  }
+  .streak { display: flex; align-items: center; gap: 3px; }
+  .check-badge {
+    width: 28px; height: 28px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; color: white;
+    cursor: pointer; transition: transform .2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .check-badge:active { transform: scale(0.85); }
+  .check-badge svg { width: 13px; height: 13px; }
+
+  /* Yearly heatmap */
+  .heatmap-wrap { overflow-x: auto; padding-bottom: 4px; }
+  .heatmap-months {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-faint); margin-bottom: 6px;
+    min-width: 480px;
+  }
+  .heatmap {
+    display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column;
+    gap: 3px; min-width: 480px;
+  }
+  .cell {
+    width: 12px; height: 12px; border-radius: 3px;
+    background: var(--card-2); cursor: pointer;
+    transition: transform .12s;
+  }
+  .cell:hover { transform: scale(1.4); }
+  .cell.lvl1 { opacity: .35; }
+  .cell.lvl2 { opacity: .6; }
+  .cell.lvl3 { opacity: .85; }
+  .cell.lvl4 { opacity: 1; }
+
+  /* Monthly grid — calendar style, tight & premium */
+  .month-wrap { margin-top: 4px; }
+  .month-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+  }
+  .month-cell {
+    aspect-ratio: 1; border-radius: 8px;
+    background: var(--card-2); border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .12s;
+    font-weight: 700; font-size: 12px; color: var(--text-dim);
+    position: relative;
+  }
+  .month-cell:hover { border-color: var(--accent); transform: scale(1.05); }
+  .month-cell.done { border-color: transparent; color: white; }
+  .month-cell.future { opacity: .35; cursor: not-allowed; }
+  .month-cell.empty { background: transparent; border: none; pointer-events: none; }
+  .month-cell.today { box-shadow: 0 0 0 2px var(--accent); }
+
+  /* Weekly view — tight reference style */
+  .week-wrap { margin-top: 4px; }
+  .week-labels {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 6px; margin-bottom: 6px;
+  }
+  .week-labels span {
+    text-align: center; font-size: 10px; font-weight: 700;
+    color: var(--text-faint); letter-spacing: .5px;
+  }
+  .week-row {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .day-cell {
+    aspect-ratio: 1; border-radius: 9px;
+    background: transparent; border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .15s;
+    font-weight: 700; font-size: 14px; color: white;
+  }
+  .day-cell:hover { transform: translateY(-1px); border-color: var(--accent); }
+  .day-cell.done { border-color: transparent; }
+  .day-cell.future { opacity: .3; cursor: not-allowed; }
+  .day-cell svg { width: 14px; height: 14px; }
+
+  /* Single view */
+  .single-stat {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; background: var(--card-2); border-radius: 12px;
+    margin-top: 8px;
+  }
+  .big-toggle {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: var(--card); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 24px; transition: all .2s;
+  }
+  .big-toggle.done { border-color: transparent; color: white; }
+
+  /* Goals */
+  .goal-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 9px; border-radius: 7px;
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent-2);
+    font-size: 11px; font-weight: 700; letter-spacing: .2px;
+  }
+  .progress-bar {
+    width: 100%; height: 6px; background: var(--card-2);
+    border-radius: 3px; overflow: hidden; margin-top: 10px;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--orange), var(--yellow));
+    border-radius: 3px; transition: width .4s;
+  }
+  .goal-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 10px; font-size: 13px; color: var(--text-dim);
+  }
+  .pct { color: var(--orange); font-weight: 700; }
+
+  /* Tasks */
+  .task {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; background: var(--card-2); border-radius: 12px;
+    margin-bottom: 8px; cursor: pointer; transition: background .15s;
+  }
+  .task:hover { background: var(--border); }
+  .task-check {
+    width: 22px; height: 22px; border-radius: 7px;
+    border: 2px solid var(--border); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .task.done .task-check { background: var(--green); border-color: var(--green); }
+  .task.done .task-text { text-decoration: line-through; color: var(--text-faint); }
+  .task-text { flex: 1; font-size: 14px; }
+  .task-del { color: var(--text-faint); font-size: 18px; padding: 4px; opacity: 0; transition: opacity .15s; }
+  .task:hover .task-del { opacity: 1; }
+  .task-del:hover { color: var(--red); }
+
+  /* Timer */
+  .timer-wrap { text-align: center; padding: 30px 20px; }
+  .timer-display {
+    font-size: 72px; font-weight: 200; letter-spacing: -3px;
+    font-variant-numeric: tabular-nums; margin: 10px 0;
+  }
+  .timer-mode {
+    display: inline-flex; gap: 4px; background: var(--card-2);
+    padding: 4px; border-radius: 10px; margin-bottom: 8px;
+  }
+  .timer-mode button {
+    padding: 8px 16px; border: none; background: transparent;
+    color: var(--text-dim); border-radius: 7px; cursor: pointer;
+    font-weight: 600; font-size: 13px;
+  }
+  .timer-mode button.active { background: var(--accent); color: white; }
+  .timer-controls { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+  .btn {
+    padding: 12px 28px; border-radius: 12px; border: none;
+    background: var(--accent); color: white; font-weight: 600;
+    cursor: pointer; font-size: 14px; transition: all .15s;
+  }
+  .btn:hover { background: var(--accent-2); transform: translateY(-1px); }
+  .btn.ghost { background: var(--card-2); color: var(--text); }
+  .btn.danger { background: var(--red); }
+
+  /* FAB */
+  /* Center add button (in nav) */
+  .nav-add {
+    flex: 0 0 auto;
+    width: 52px; height: 52px; border-radius: 17px;
+    margin: -18px 6px 0;
+    background: linear-gradient(145deg, var(--accent-2), var(--accent));
+    border: 4px solid var(--bg);
+    cursor: pointer; align-self: center;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px -6px var(--accent),
+                0 1px 0 rgba(255,255,255,.3) inset;
+    color: #fff;
+    transition: transform .25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .nav-add svg { width: 24px; height: 24px; }
+  .nav-add:hover { transform: scale(1.08) rotate(90deg); }
+  .nav-add:active { transform: scale(0.9); }
+
+  /* Bottom nav */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    max-width: 1200px; margin: 0 auto;
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-around; align-items: flex-start;
+    padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1; background: none; border: none; cursor: pointer;
+    color: var(--text-faint); padding: 7px; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10.5px; font-weight: 600; transition: color .2s, transform .15s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-btn:active { transform: scale(0.9); }
+  .nav-btn svg { width: 21px; height: 21px; transition: transform .25s cubic-bezier(0.34,1.56,0.64,1); }
+  .nav-btn.active svg { transform: translateY(-1px) scale(1.08); }
+
+  /* Modal */
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    display: none; align-items: flex-end; justify-content: center;
+    z-index: 200; backdrop-filter: blur(4px);
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--bg-2); width: 100%; max-width: 500px;
+    border-radius: 20px 20px 0 0; padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+    animation: slideUp .25s ease;
+  }
+  @media (min-width: 600px) {
+    .modal-bg { align-items: center; }
+    .modal { border-radius: 20px; margin: 0 20px; }
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal h2 { font-size: 20px; margin-bottom: 16px; }
+  .modal label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; font-weight: 600; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text); font-size: 15px; margin-bottom: 14px;
+    font-family: inherit;
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus { outline: none; border-color: var(--accent); }
+  .color-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .color-dot {
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    border: 2px solid transparent; transition: transform .12s;
+  }
+  .color-dot.selected { border-color: white; transform: scale(1.1); }
+  .emoji-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .emoji-pick {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--card); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 18px;
+  }
+  .emoji-pick.selected { background: var(--accent); border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .modal-actions .btn { flex: 1; }
+
+  /* Page */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Empty */
+  .empty {
+    text-align: center; padding: 50px 20px; color: var(--text-faint);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* Goals page */
+  .section-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.1px;
+    color: var(--text-faint); margin: 2px 18px 8px; font-weight: 700;
+  }
+  .home-stats {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 10px; padding: 0 16px; margin-bottom: 16px;
+  }
+  .stat-card {
+    border: 1px solid var(--border);
+    border-radius: 15px; padding: 12px 14px;
+    box-shadow: 0 12px 26px -22px rgba(0,0,0,.5);
+    transition: transform .25s cubic-bezier(0.16,1,0.3,1);
+    background: linear-gradient(120deg,
+      var(--card) 0%,
+      color-mix(in srgb, var(--flowCol) 22%, var(--card)) 25%,
+      var(--card) 50%,
+      color-mix(in srgb, var(--flowCol) 16%, var(--card)) 75%,
+      var(--card) 100%);
+    background-size: 300% 300%;
+    animation: gradFlow 5s ease-in-out infinite;
+  }
+  .stat-card:active { transform: scale(0.98); }
+  @keyframes gradFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .stat-num {
+    font-size: 23px; font-weight: 700; letter-spacing: -0.8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; font-weight: 500; }
+
+  /* Longest streak — living flame card */
+  .streak-card {
+    position: relative; overflow: hidden;
+    border-color: color-mix(in srgb, var(--orange) 45%, var(--border));
+    animation: gradFlow 5s ease-in-out infinite, streakGlow 2.4s ease-in-out infinite;
+  }
+  .streak-card .stat-num { color: var(--orange); }
+  .streak-card .flame {
+    display: inline-block;
+    animation: flameFlicker 1.3s ease-in-out infinite;
+    transform-origin: 50% 80%;
+  }
+  @keyframes streakGlow {
+    0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--orange) 0%, transparent),
+                          0 12px 26px -22px rgba(0,0,0,.5); }
+    50%     { box-shadow: 0 0 18px -2px color-mix(in srgb, var(--orange) 55%, transparent),
+                          0 12px 26px -22px rgba(0,0,0,.5); }
+  }
+  @keyframes flameFlicker {
+    0%,100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+    50%     { transform: scale(1.18) rotate(3deg); opacity: .85; }
+  }
+
+  /* Tasks pending: yellow + pulse when pending, green when clear */
+  .stat-card.pending {
+    border-color: color-mix(in srgb, var(--yellow) 55%, var(--border));
+    animation: gradFlow 5s ease-in-out infinite, pendPulse 1.8s ease-in-out infinite;
+  }
+  .stat-card.pending .stat-num { color: var(--yellow); }
+  .stat-card.clear {
+    border-color: color-mix(in srgb, var(--green) 55%, var(--border));
+  }
+  .stat-card.clear .stat-num { color: var(--green); }
+  @keyframes pendPulse {
+    0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--yellow) 0%, transparent),
+                          0 12px 26px -22px rgba(0,0,0,.5); }
+    50%     { box-shadow: 0 0 16px -2px color-mix(in srgb, var(--yellow) 50%, transparent),
+                          0 12px 26px -22px rgba(0,0,0,.5); }
+  }
+
+  /* ===== Flowing animated gradient border on stat cards ===== */
+  @property --flowAngle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+  .stat-card {
+    position: relative; overflow: hidden;
+    --flowCol: var(--accent);
+  }
+  /* Rotating light that travels around the card edge */
+  .stat-card::before {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    padding: 1.5px; pointer-events: none; z-index: 2;
+    background: conic-gradient(from var(--flowAngle),
+      transparent 0deg,
+      var(--flowCol) 60deg,
+      color-mix(in srgb, var(--flowCol) 40%, #fff) 90deg,
+      transparent 160deg,
+      transparent 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: flowSpin 3.6s linear infinite;
+  }
+  /* Soft moving light sheen inside */
+  .stat-card::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+    background: linear-gradient(115deg,
+      transparent 30%,
+      color-mix(in srgb, var(--flowCol) 14%, transparent) 50%,
+      transparent 70%);
+    background-size: 250% 100%;
+    animation: flowSheen 3.6s linear infinite;
+  }
+  .stat-card > * { position: relative; z-index: 3; }
+  .home-stats .stat-card:nth-child(2)::before,
+  .home-stats .stat-card:nth-child(2)::after { animation-delay: .9s; }
+  .home-stats .stat-card:nth-child(3)::before,
+  .home-stats .stat-card:nth-child(3)::after { animation-delay: 1.8s; }
+  .home-stats .stat-card:nth-child(4)::before,
+  .home-stats .stat-card:nth-child(4)::after { animation-delay: 2.7s; }
+  /* Semantic flow colors */
+  .stat-card.clear   { --flowCol: var(--green); }
+  .stat-card.pending { --flowCol: var(--yellow); }
+  .streak-card       { --flowCol: var(--orange); }
+  @keyframes flowSpin { to { --flowAngle: 360deg; } }
+  @keyframes flowSheen {
+    0%   { background-position: 250% 0; }
+    100% { background-position: -150% 0; }
+  }
+  /* Fallback for browsers without @property: simple opacity pulse border */
+  @supports not (background: conic-gradient(from var(--flowAngle), red, blue)) {
+    .stat-card::before {
+      background: linear-gradient(115deg, transparent, var(--flowCol), transparent);
+      background-size: 250% 100%; animation: flowSheen 3.2s linear infinite;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .stat-card::before, .stat-card::after, .streak-card, .stat-card.pending { animation: none; }
+  }
+
+  /* Date nav */
+  .date-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 0 20px 12px;
+  }
+  .date-nav button {
+    background: var(--card); border: 1px solid var(--border);
+    width: 36px; height: 36px; border-radius: 50%; color: var(--text);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .date-label { font-weight: 600; font-size: 14px; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Themes */
+  .theme-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 10px;
+  }
+  .theme-card {
+    border-radius: 12px; padding: 10px; cursor: pointer;
+    border: 2px solid var(--border); transition: all .15s;
+    position: relative; overflow: hidden;
+    height: 90px;
+  }
+  .theme-card:hover { transform: translateY(-2px); }
+  .theme-card.active { border-color: var(--accent); }
+  .theme-card .tname {
+    font-size: 11px; font-weight: 700;
+    position: absolute; bottom: 8px; left: 10px;
+    text-shadow: 0 1px 4px rgba(0,0,0,.5);
+  }
+  .theme-card .tdots {
+    position: absolute; top: 10px; right: 10px;
+    display: flex; gap: 4px;
+  }
+  .theme-card .tdot { width: 10px; height: 10px; border-radius: 50%; }
+  .custom-row {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+  }
+  .custom-pick { display: flex; flex-direction: column; gap: 4px; }
+  .custom-pick label { font-size: 11px; color: var(--text-dim); font-weight: 600; }
+  .custom-pick input {
+    width: 100%; height: 38px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--card-2);
+    padding: 0; cursor: pointer;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%);
+    background: var(--card-2); color: var(--text); padding: 10px 18px;
+    border-radius: 24px; border: 1px solid var(--border);
+    font-size: 13px; font-weight: 500;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+    z-index: 300;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo"><div class="logo-dot"></div><span><b>Dot</b><span class="light">wise</span></span></div>
+  <div class="header-actions">
+    <button class="icon-btn" id="open-settings" title="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <button class="icon-btn" title="Notifications">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <div class="avatar" id="avatar">D</div>
+  </div>
+</header>
+
+<!-- HOME -->
+<section class="page active" id="page-home">
+  <h1>Home</h1>
+  <div class="home-stats">
+    <div class="stat-card" id="card-habits"><div class="stat-num" id="stat-habits">0</div><div class="stat-label">Habits today</div></div>
+    <div class="stat-card" id="card-tasks"><div class="stat-num" id="stat-tasks">0</div><div class="stat-label">Activities today</div></div>
+    <div class="stat-card streak-card" id="card-streak"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">Longest streak <span class="flame">🔥</span></div></div>
+    <div class="stat-card" id="card-goals"><div class="stat-num" id="stat-goals">0</div><div class="stat-label">Active goals</div></div>
+  </div>
+  <div class="section-label">This year</div>
+  <div class="container" id="home-year"></div>
+  <div class="section-label">Today's habits</div>
+  <div class="container" id="home-today"></div>
+</section>
+
+<!-- HABITS -->
+<section class="page" id="page-habits">
+  <h1>Habits</h1>
+  <div class="view-tabs" id="habit-tabs">
+    <button class="view-tab" data-view="single">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/></svg>
+      Single
+    </button>
+    <button class="view-tab active" data-view="weekly">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+      Weekly
+    </button>
+    <button class="view-tab" data-view="monthly">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Monthly
+    </button>
+    <button class="view-tab" data-view="yearly">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Yearly
+    </button>
+  </div>
+  <div class="date-nav" id="week-nav" style="display:none">
+    <button id="week-prev">‹</button>
+    <div class="date-label" id="week-label">This week</div>
+    <button id="week-next">›</button>
+  </div>
+  <div class="container" id="habits-list"></div>
+</section>
+
+<!-- GOALS -->
+<section class="page" id="page-goals">
+  <h1>Goals</h1>
+  <p style="padding: 0 20px 16px; color: var(--text-dim); font-size: 14px;">Track what matters most to you.</p>
+  <div class="container" id="goals-list"></div>
+</section>
+
+<!-- TASKS -->
+<section class="page" id="page-tasks">
+  <h1>Tasks</h1>
+  <div class="container">
+    <div class="card">
+      <div id="tasks-list"></div>
+      <div style="display: flex; gap: 8px; margin-top: 8px;">
+        <input id="new-task" placeholder="Add a task..." style="flex:1; padding: 12px 14px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--border); color: var(--text); font-size: 14px;" />
+        <button class="btn" onclick="addTask()">Add</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMER -->
+<section class="page" id="page-timer">
+  <h1>Focus Timer</h1>
+  <div class="container">
+    <div class="card">
+      <div class="timer-wrap">
+        <div class="timer-mode">
+          <button class="active" data-mode="25">Focus 25m</button>
+          <button data-mode="5">Short 5m</button>
+          <button data-mode="15">Long 15m</button>
+        </div>
+        <div class="timer-display" id="timer-display">25:00</div>
+        <div style="color: var(--text-dim); font-size: 13px;" id="timer-status">Ready to focus</div>
+        <div class="timer-controls">
+          <button class="btn" id="timer-start">Start</button>
+          <button class="btn ghost" id="timer-reset">Reset</button>
+        </div>
+        <div style="margin-top: 24px; color: var(--text-dim); font-size: 13px;">
+          Completed today: <span id="pomo-count" style="color: var(--accent-2); font-weight: 700;">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="page" id="page-settings">
+  <h1>Settings</h1>
+  <div class="container">
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:10px;">Theme</div>
+      <div class="theme-grid" id="theme-grid"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:10px;">Accent color</div>
+      <div class="color-row" id="accent-row" style="margin:0;"></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+        <div id="accent-preview" style="width:40px;height:40px;border-radius:10px;border:1px solid var(--border);flex-shrink:0;background:var(--accent);"></div>
+        <input id="accent-hex" placeholder="#6366f1" maxlength="7" style="flex:1;padding:12px 14px;border-radius:10px;background:var(--card-2);border:1px solid var(--border);color:var(--text);font-size:14px;text-transform:lowercase;font-family:inherit;" />
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:10px;">Custom theme</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;">Build your own — pick background, cards, text.</div>
+      <div class="custom-row" id="custom-row"></div>
+      <button class="btn" id="reset-theme" style="width:100%;margin-top:12px;background:var(--card-2);color:var(--text);">Reset to defaults</button>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:600;margin-bottom:10px;">Data</div>
+      <button class="btn ghost" id="export-data" style="width:100%;margin-bottom:8px;">Export data (JSON)</button>
+      <button class="btn ghost" id="import-data" style="width:100%;margin-bottom:8px;">Import data</button>
+      <button class="btn danger" id="clear-data" style="width:100%;">Reset all data</button>
+    </div>
+  </div>
+</section>
+
+<!-- Bottom Nav -->
+<nav class="nav">
+  <button class="nav-btn active" data-page="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
+  </button>
+  <button class="nav-btn" data-page="habits">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    Habits
+  </button>
+  <button class="nav-add" id="fab" title="Add">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+  <button class="nav-btn" data-page="goals">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+    Goals
+  </button>
+  <button class="nav-btn" data-page="timer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Timer
+  </button>
+</nav>
+
+<!-- Habit Modal -->
+<div class="modal-bg" id="habit-modal">
+  <div class="modal">
+    <h2 id="habit-modal-title">New Habit</h2>
+    <label>Name</label>
+    <input id="h-name" placeholder="e.g. Morning Workout" />
+
+    <label>Times per day — single or multi</label>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+      <button type="button" class="btn ghost" id="h-target-minus" style="width:42px;padding:10px 0;font-size:18px;">−</button>
+      <div style="flex:1;text-align:center;">
+        <div id="h-target-val" style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;">1</div>
+        <div id="h-target-hint" style="font-size:11px;color:var(--text-dim);">Single — once a day</div>
+      </div>
+      <button type="button" class="btn ghost" id="h-target-plus" style="width:42px;padding:10px 0;font-size:18px;">+</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button type="button" class="tpreset btn ghost" data-t="1" style="flex:1;padding:7px;font-size:12px;">1×</button>
+      <button type="button" class="tpreset btn ghost" data-t="3" style="flex:1;padding:7px;font-size:12px;">3×</button>
+      <button type="button" class="tpreset btn ghost" data-t="5" style="flex:1;padding:7px;font-size:12px;">5× (Namaz)</button>
+      <button type="button" class="tpreset btn ghost" data-t="8" style="flex:1;padding:7px;font-size:12px;">8×</button>
+    </div>
+
+    <label>Icon — pick or type your own</label>
+    <div class="emoji-row" id="emoji-row"></div>
+    <input id="h-custom-emoji" placeholder="Paste any emoji or character: ⚡ 🏆 A" maxlength="4" style="text-align:center;font-size:18px;" />
+
+    <label>Or upload your own image / GIF</label>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+      <div id="img-preview" style="width:44px;height:44px;border-radius:11px;border:1px solid var(--border);background:var(--card-2);background-size:cover;background-position:center;flex-shrink:0;"></div>
+      <label for="h-image" class="btn ghost" style="flex:1;margin:0;text-align:center;cursor:pointer;padding:11px;">Choose image…</label>
+      <input type="file" id="h-image" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none;" />
+      <button type="button" id="h-image-clear" class="btn ghost" style="width:auto;padding:11px 14px;">Clear</button>
+    </div>
+
+    <label>Color — pick or enter hex code</label>
+    <div class="color-row" id="color-row"></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <div id="hex-preview" style="width:40px;height:40px;border-radius:10px;border:1px solid var(--border);flex-shrink:0;"></div>
+      <input id="h-custom-color" placeholder="#ff6b6b" maxlength="7" style="margin-bottom:0;text-transform:lowercase;" />
+    </div>
+
+    <label style="margin-top:14px;">Glow effect</label>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <button type="button" class="glow-opt btn ghost" data-glow="0" style="flex:1;">Off</button>
+      <button type="button" class="glow-opt btn ghost" data-glow="1" style="flex:1;">On ✨</button>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="h-cancel" onclick="closeHabitModal()">Cancel</button>
+      <button type="button" class="btn danger" id="h-delete" style="display:none" onclick="deleteHabit()">Delete</button>
+      <button type="button" class="btn" id="h-save" onclick="saveHabit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="modal-bg" id="goal-modal">
+  <div class="modal">
+    <h2 id="goal-modal-title">New Goal</h2>
+    <label>Title</label>
+    <input id="g-name" placeholder="e.g. Read 4 books this month" />
+    <label>Why this matters</label>
+    <textarea id="g-why" rows="2" placeholder="What's the motivation?"></textarea>
+    <label>Target value</label>
+    <input id="g-target" type="number" placeholder="4" />
+    <label>Unit</label>
+    <input id="g-unit" placeholder="books" />
+    <label>Current progress</label>
+    <input id="g-current" type="number" placeholder="0" />
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeGoalModal()">Cancel</button>
+      <button class="btn danger" id="g-delete" style="display:none" onclick="deleteGoal()">Delete</button>
+      <button class="btn" onclick="saveGoal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Auth / Account Modal -->
+<div class="modal-bg" id="auth-modal">
+  <div class="modal">
+    <div id="auth-loggedout">
+      <h2>Sign in to sync</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:16px;">Log in to back up your habits and sync across all your devices. Or keep using the app offline on this device.</p>
+      <label>Email</label>
+      <input id="auth-email" type="email" placeholder="you@email.com" autocomplete="email" />
+      <label>Password</label>
+      <input id="auth-pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+      <div id="auth-msg" style="font-size:12px;color:var(--orange);min-height:16px;margin-bottom:8px;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="auth-signup">Sign up</button>
+        <button type="button" class="btn" id="auth-login">Log in</button>
+      </div>
+      <button type="button" class="btn ghost" id="auth-offline" style="width:100%;margin-top:8px;">Continue offline</button>
+    </div>
+    <div id="auth-loggedin" style="display:none;">
+      <h2>Account</h2>
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:6px;">Signed in as</p>
+      <div id="auth-who" style="font-weight:700;margin-bottom:16px;word-break:break-all;"></div>
+      <div id="auth-sync-status" style="font-size:12px;color:var(--text-dim);margin-bottom:14px;">Synced</div>
+      <div class="modal-actions">
+        <button type="button" class="btn ghost" id="auth-close2">Close</button>
+        <button type="button" class="btn" id="auth-syncnow">Sync now</button>
+      </div>
+      <button type="button" class="btn danger" id="auth-logout" style="width:100%;margin-top:8px;">Log out</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== STATE ====================
+const COLORS = ['#f87171','#fb923c','#facc15','#34d399','#22d3ee','#60a5fa','#818cf8','#c084fc','#f472b6'];
+const EMOJIS = ['💪','📖','💧','👟','🧘','✍️','🧠','🍎','😴','☀️','🎯','💻','🎨','🎵','🌱','🏃','☕','🚭','💰','📿'];
+
+let state = {
+  habits: [],
+  goals: [],
+  tasks: [],
+  logs: {},
+  pomoCount: 0,
+  pomoDate: '',
+  theme: 'dotwise',
+  accent: '#d97757',
+  customTheme: null
+};
+
+function load() {
+  try {
+    const saved = localStorage.getItem('dot-app');
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+  } catch(e) {}
+  if (state.pomoDate !== today()) { state.pomoCount = 0; state.pomoDate = today(); }
+  // Branding migration → Dotwise warm theme (run once)
+  if (!state.brand || state.brand < 2) {
+    state.theme = 'dotwise';
+    state.accent = '#d97757';
+    state.customTheme = null;
+    state.brand = 2;
+  }
+  if (state.habits.length === 0) seedDemo();
+}
+function save() {
+  localStorage.setItem('dot-app', JSON.stringify(state));
+  if (typeof schedulePush === 'function') schedulePush();
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function today() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) { return d.toISOString().slice(0,10); }
+
+function seedDemo() {
+  state.habits = [
+    { id: uid(), name: 'Morning Workout', emoji: '💪', color: '#f87171', target: 1 },
+    { id: uid(), name: 'Read 20 pages', emoji: '📖', color: '#60a5fa', target: 1 },
+    { id: uid(), name: 'Drink 8 glasses water', emoji: '💧', color: '#22d3ee', target: 8 },
+    { id: uid(), name: '10k steps', emoji: '👟', color: '#34d399', target: 1 },
+    { id: uid(), name: 'Meditation', emoji: '🧘', color: '#c084fc', target: 1 }
+  ];
+  state.goals = [
+    { id: uid(), name: 'Read 4 books this month', why: 'Focus on non-fiction and personal development.', target: 4, current: 3, unit: 'books' }
+  ];
+  // seed some random logs (respecting each habit's daily target)
+  const now = new Date();
+  state.habits.forEach((h, i) => {
+    state.logs[h.id] = {};
+    const tgt = h.target || 1;
+    for (let d = 0; d < 120; d++) {
+      const day = new Date(now); day.setDate(now.getDate() - d);
+      if (Math.random() > 0.35 - i*0.03) {
+        // random count up to target; often full
+        const c = tgt === 1 ? 1 : (Math.random() > 0.4 ? tgt : 1 + Math.floor(Math.random() * tgt));
+        state.logs[h.id][fmtDate(day)] = c;
+      }
+    }
+  });
+  save();
+}
+
+// ==================== NAV ====================
+let currentPage = 'home';
+let habitView = 'weekly';
+let weekOffset = 0;
+let monthOffset = 0;
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.onclick = () => {
+    currentPage = btn.dataset.page;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + currentPage));
+    render();
+  };
+});
+
+document.querySelectorAll('.view-tab').forEach(t => {
+  t.onclick = () => {
+    habitView = t.dataset.view;
+    document.querySelectorAll('.view-tab').forEach(x => x.classList.toggle('active', x === t));
+    document.getElementById('week-nav').style.display = (habitView === 'weekly' || habitView === 'monthly') ? 'flex' : 'none';
+    renderHabits();
+  };
+});
+
+document.getElementById('week-prev').onclick = () => {
+  if (habitView === 'monthly') monthOffset--; else weekOffset--;
+  renderHabits();
+};
+document.getElementById('week-next').onclick = () => {
+  if (habitView === 'monthly') monthOffset++; else weekOffset++;
+  renderHabits();
+};
+
+document.getElementById('fab').onclick = () => {
+  if (currentPage === 'goals') openGoalModal();
+  else if (currentPage === 'tasks') document.getElementById('new-task').focus();
+  else if (currentPage === 'settings') return;
+  else openHabitModal();
+};
+
+document.getElementById('open-settings').onclick = () => {
+  currentPage = 'settings';
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-settings'));
+  render();
+};
+
+// ==================== HABITS ====================
+// ----- Icon + dots helpers -----
+function iconHTML(h) {
+  if (h.image) return `<img class="card-emoji-img" src="${h.image}" alt="">`;
+  return `<span class="card-emoji"${h.glow?` style="text-shadow:0 0 12px ${h.color};"`:''}>${h.emoji}</span>`;
+}
+function dotsHTML(count, target, color) {
+  let s = '<div class="dots">';
+  for (let i = 0; i < target; i++) {
+    s += `<span class="dot ${i < count ? 'on' : ''}" style="${i < count ? `background:${color};` : ''}"></span>`;
+  }
+  s += '</div>';
+  return s;
+}
+
+// ----- Multi-count helpers -----
+function habitById(id) { return state.habits.find(h => h.id === id); }
+function targetOf(h) { return Math.max(1, (typeof h === 'object' ? h.target : (habitById(h)?.target)) || 1); }
+function dayCount(habitId, ds) {
+  const v = (state.logs[habitId] || {})[ds];
+  if (v === true) return 1;        // legacy boolean
+  return Number(v) || 0;
+}
+function dayDone(habitId, ds) {
+  const h = habitById(habitId);
+  return dayCount(habitId, ds) >= targetOf(h || {});
+}
+
+function toggleLog(habitId, date) {
+  // Only today's habit can be logged — past days are locked
+  if (date !== today()) { toast('Only today can be logged'); return; }
+  if (!state.logs[habitId]) state.logs[habitId] = {};
+  const tgt = targetOf(habitById(habitId) || {});
+  const cur = dayCount(habitId, date);
+  let next;
+  if (tgt <= 1) {
+    next = cur >= 1 ? 0 : 1;       // single: simple toggle
+  } else {
+    next = cur + 1;                // multi: increment, wrap to 0 after target
+    if (next > tgt) next = 0;
+  }
+  if (next <= 0) delete state.logs[habitId][date];
+  else state.logs[habitId][date] = next;
+  save(); render();
+}
+
+function streakOf(habitId) {
+  let s = 0; const d = new Date();
+  while (dayDone(habitId, fmtDate(d))) { s++; d.setDate(d.getDate() - 1); }
+  return s;
+}
+function totalDays(habitId) {
+  const logs = state.logs[habitId] || {};
+  return Object.keys(logs).filter(ds => dayDone(habitId, ds)).length;
+}
+
+function renderHabits() {
+  const list = document.getElementById('habits-list');
+  list.innerHTML = '';
+  if (state.habits.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🌱</div><div>No habits yet. Tap + to create one.</div></div>';
+    return;
+  }
+  state.habits.forEach(h => {
+    const streak = streakOf(h.id);
+    const total = totalDays(h.id);
+    const tgt = targetOf(h);
+    const cntToday = dayCount(h.id, today());
+    const doneToday = cntToday >= tgt;
+    const card = document.createElement('div');
+    card.className = 'card';
+    let body = '';
+    if (habitView === 'single') {
+      const statusTxt = tgt > 1
+        ? (doneToday ? `All ${tgt} done ✓` : `${cntToday} / ${tgt} done — tap to add`)
+        : (doneToday ? 'Completed ✓' : 'Tap to log');
+      const toggleInner = tgt > 1
+        ? `<span style="font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;">${cntToday}</span>`
+        : (doneToday ? '✓' : '');
+      body = `
+        <div class="single-stat">
+          <div>
+            <div style="font-size:13px;color:var(--text-dim);margin-bottom:2px;">Today</div>
+            <div style="font-weight:600;">${statusTxt}</div>
+            ${tgt > 1 ? `<div style="margin-top:8px;">${dotsHTML(cntToday, tgt, h.color)}</div>` : ''}
+          </div>
+          <div class="big-toggle ${doneToday?'done':''}" style="${doneToday?`background:${h.color};`:(cntToday>0?`background:${h.color}55;`:'')}" onclick="toggleLog('${h.id}','${today()}')">
+            ${toggleInner}
+          </div>
+        </div>`;
+    } else if (habitView === 'weekly') {
+      body = renderWeek(h);
+    } else if (habitView === 'monthly') {
+      body = renderMonth(h);
+    } else {
+      body = renderYear(h);
+    }
+    if (h.glow) card.style.boxShadow = `0 0 24px ${h.color}55, 0 0 4px ${h.color}33 inset`;
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-title" onclick="editHabit('${h.id}')" style="cursor:pointer;">
+          ${iconHTML(h)}
+          <span style="color:${h.color}${h.glow?`;text-shadow:0 0 8px ${h.color}99`:''}">${h.name}${tgt>1?` <span style="color:var(--text-faint);font-size:12px;">×${tgt}</span>`:''}</span>
+        </div>
+        <div class="card-meta">
+          <div class="streak">🔥 ${streak}</div>
+          <div>${total}d</div>
+          <div class="check-badge" style="background:${doneToday?h.color:(cntToday>0?h.color+'55':'var(--card-2)')};border:1.5px solid ${doneToday?'transparent':'var(--border)'};color:${doneToday||cntToday>0?'white':'var(--text-faint)'};" onclick="toggleLog('${h.id}','${today()}')">
+            ${doneToday
+              ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+              : (tgt > 1 ? `<span style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;">${cntToday}</span>` : '')}
+          </div>
+        </div>
+      </div>
+      ${body}
+    `;
+    list.appendChild(card);
+  });
+}
+
+function renderWeek(h) {
+  const now = new Date();
+  now.setDate(now.getDate() + weekOffset * 7);
+  const day = now.getDay() || 7;
+  const monday = new Date(now); monday.setDate(now.getDate() - day + 1);
+  const labels = ['MO','TU','WE','TH','FR','SA','SU'];
+  const weekStart = new Date(monday); const weekEnd = new Date(monday); weekEnd.setDate(monday.getDate()+6);
+  document.getElementById('week-label').textContent =
+    `${weekStart.toLocaleDateString('en',{month:'short',day:'numeric'})} - ${weekEnd.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'})}`;
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tgt = targetOf(h);
+  let labelsHtml = '<div class="week-labels">';
+  let rowHtml = '<div class="week-row">';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday); d.setDate(monday.getDate() + i);
+    const ds = fmtDate(d);
+    const cnt = dayCount(h.id, ds);
+    const done = cnt >= tgt;
+    const partial = cnt > 0 && !done;
+    const isFuture = d > today;
+    labelsHtml += `<span>${labels[i]}</span>`;
+    const inner = done
+      ? (tgt > 1 ? cnt : '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>')
+      : (partial ? cnt : '');
+    rowHtml += `<div class="day-cell ${done?'done':''} ${isFuture?'future':''}" style="${done?`background:${h.color};`:(partial?`background:${h.color}55;color:#fff;`:'')}" ${isFuture?'':`onclick="toggleLog('${h.id}','${ds}')"`}>
+      ${inner}
+    </div>`;
+  }
+  labelsHtml += '</div>';
+  rowHtml += '</div>';
+  return `<div class="week-wrap">${labelsHtml}${rowHtml}</div>`;
+}
+
+function renderMonth(h) {
+  const base = new Date();
+  base.setDate(1);
+  base.setMonth(base.getMonth() + monthOffset);
+  const year = base.getFullYear();
+  const month = base.getMonth();
+  const monthName = base.toLocaleDateString('en', { month: 'long', year: 'numeric' });
+  document.getElementById('week-label').textContent = monthName;
+
+  const firstDay = new Date(year, month, 1);
+  const startWeekday = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = fmtDate(today);
+
+  const labels = ['MO','TU','WE','TH','FR','SA','SU'];
+  let html = `<div class="month-wrap">
+    <div class="week-labels">${labels.map(l => `<span>${l}</span>`).join('')}</div>
+    <div class="month-grid">`;
+
+  const tgt = targetOf(h);
+  for (let i = 0; i < startWeekday; i++) html += `<div class="month-cell empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dt = new Date(year, month, d);
+    const ds = fmtDate(dt);
+    const cnt = dayCount(h.id, ds);
+    const done = cnt >= tgt;
+    const partial = cnt > 0 && !done;
+    const isFuture = dt > today;
+    const isToday = ds === todayStr;
+    html += `<div class="month-cell ${done?'done':''} ${isFuture?'future':''} ${isToday?'today':''}" style="${done?`background:${h.color};`:(partial?`background:${h.color}55;color:#fff;`:'')}" ${isFuture?'':`onclick="toggleLog('${h.id}','${ds}')"`}>${d}</div>`;
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function renderYear(h) {
+  const now = new Date();
+  const start = new Date(now); start.setMonth(now.getMonth() - 6);
+  // align to Monday
+  while (start.getDay() !== 1) start.setDate(start.getDate() - 1);
+
+  const months = [];
+  let html = '<div class="heatmap-wrap"><div class="heatmap-months">';
+  // Generate 7 month labels
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setMonth(start.getMonth() + i);
+    months.push(d.toLocaleDateString('en',{month:'short'}));
+    html += `<span>${months[i]}</span>`;
+  }
+  html += '</div><div class="heatmap">';
+
+  const totalDays = Math.floor((now - start) / 86400000) + 14;
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    if (d > now) {
+      html += `<div class="cell" style="opacity:.15;"></div>`;
+      continue;
+    }
+    const ds = fmtDate(d);
+    const done = dayDone(h.id, ds);
+    if (done) {
+      const lvl = ((d.getDate() + i) % 4) + 1;
+      html += `<div class="cell lvl${lvl}" style="background:${h.color};" onclick="toggleLog('${h.id}','${ds}')" title="${ds}"></div>`;
+    } else {
+      html += `<div class="cell" onclick="toggleLog('${h.id}','${ds}')" title="${ds}"></div>`;
+    }
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// ==================== HABIT MODAL ====================
+let editingHabit = null;
+let selColor = COLORS[0], selEmoji = EMOJIS[0], selGlow = 0, selTarget = 1, selImage = null;
+
+function setImagePreview() {
+  const p = document.getElementById('img-preview');
+  if (selImage) { p.style.backgroundImage = `url(${selImage})`; }
+  else { p.style.backgroundImage = 'none'; }
+}
+
+function renderTargetUI() {
+  document.getElementById('h-target-val').textContent = selTarget;
+  const hint = selTarget <= 1 ? 'Single — once a day' : `Multi — ${selTarget} times a day`;
+  document.getElementById('h-target-hint').textContent = hint;
+  document.querySelectorAll('.tpreset').forEach(b => {
+    const on = parseInt(b.dataset.t) === selTarget;
+    b.style.background = on ? 'var(--accent)' : 'var(--card-2)';
+    b.style.color = on ? '#fff' : 'var(--text)';
+  });
+}
+
+function openHabitModal(habit) {
+  editingHabit = habit || null;
+  document.getElementById('habit-modal-title').textContent = habit ? 'Edit Habit' : 'New Habit';
+  document.getElementById('h-name').value = habit?.name || '';
+  selColor = habit?.color || COLORS[0];
+  selEmoji = habit?.emoji || EMOJIS[0];
+  selGlow = habit?.glow ? 1 : 0;
+  selTarget = Math.max(1, habit?.target || 1);
+  selImage = habit?.image || null;
+  setImagePreview();
+  document.getElementById('h-image').value = '';
+  renderTargetUI();
+  document.getElementById('h-custom-emoji').value = '';
+  document.getElementById('h-custom-color').value = selColor;
+  document.getElementById('hex-preview').style.background = selColor;
+  document.getElementById('h-delete').style.display = habit ? 'block' : 'none';
+  renderEmojiRow();
+  renderColorRow();
+  renderGlowButtons();
+  document.getElementById('habit-modal').classList.add('show');
+}
+function closeHabitModal() { document.getElementById('habit-modal').classList.remove('show'); }
+function editHabit(id) { openHabitModal(state.habits.find(h => h.id === id)); }
+function deleteHabit() {
+  if (!editingHabit) return;
+  if (!confirm('Delete this habit and all its history?')) return;
+  state.habits = state.habits.filter(h => h.id !== editingHabit.id);
+  delete state.logs[editingHabit.id];
+  save(); closeHabitModal(); render();
+  toast('Habit deleted');
+}
+function saveHabit() {
+  const name = document.getElementById('h-name').value.trim();
+  if (!name) return toast('Name required');
+  // Pick up custom emoji if user typed one
+  const custEmoji = document.getElementById('h-custom-emoji').value.trim();
+  if (custEmoji) selEmoji = [...custEmoji][0];
+  // Pick up custom hex color if user typed one
+  const custColor = document.getElementById('h-custom-color').value.trim();
+  if (custColor && /^#?[0-9a-fA-F]{3,6}$/.test(custColor)) {
+    selColor = custColor.startsWith('#') ? custColor : '#' + custColor;
+  }
+  if (editingHabit) {
+    Object.assign(editingHabit, { name, color: selColor, emoji: selEmoji, glow: !!selGlow, target: selTarget, image: selImage || null });
+  } else {
+    state.habits.push({ id: uid(), name, color: selColor, emoji: selEmoji, glow: !!selGlow, target: selTarget, image: selImage || null });
+  }
+  save(); closeHabitModal(); render();
+  toast(editingHabit ? 'Habit updated' : 'Habit created');
+}
+function renderEmojiRow() {
+  const row = document.getElementById('emoji-row');
+  row.innerHTML = EMOJIS.map((e,i) =>
+    `<div class="emoji-pick ${e===selEmoji?'selected':''}" data-emoji-idx="${i}">${e}</div>`
+  ).join('');
+  row.querySelectorAll('.emoji-pick').forEach(el => {
+    el.onclick = () => {
+      selEmoji = EMOJIS[el.dataset.emojiIdx];
+      document.getElementById('h-custom-emoji').value = '';
+      renderEmojiRow();
+    };
+  });
+}
+function renderColorRow() {
+  const row = document.getElementById('color-row');
+  row.innerHTML = COLORS.map((c,i) =>
+    `<div class="color-dot ${c===selColor?'selected':''}" data-color-idx="${i}" style="background:${c}"></div>`
+  ).join('');
+  row.querySelectorAll('.color-dot').forEach(el => {
+    el.onclick = () => {
+      selColor = COLORS[el.dataset.colorIdx];
+      document.getElementById('h-custom-color').value = selColor;
+      document.getElementById('hex-preview').style.background = selColor;
+      renderColorRow();
+    };
+  });
+}
+function renderGlowButtons() {
+  document.querySelectorAll('.glow-opt').forEach(b => {
+    const v = parseInt(b.dataset.glow);
+    const isSel = v === selGlow;
+    b.style.background = isSel ? 'var(--accent)' : 'var(--card-2)';
+    b.style.color = isSel ? 'white' : 'var(--text)';
+  });
+}
+window.addEventListener('error', e => {
+  toast('Error: ' + (e.message || 'check console'));
+});
+
+// Save/Cancel/Delete buttons use inline onclick in HTML — don't double-bind here
+
+// Live preview of hex color as user types
+document.getElementById('h-custom-color').addEventListener('input', e => {
+  const v = e.target.value.trim();
+  if (/^#?[0-9a-fA-F]{3,6}$/.test(v)) {
+    const hex = v.startsWith('#') ? v : '#' + v;
+    document.getElementById('hex-preview').style.background = hex;
+    selColor = hex;
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  }
+});
+
+// Glow toggle buttons
+document.querySelectorAll('.glow-opt').forEach(b => {
+  b.addEventListener('click', () => {
+    selGlow = parseInt(b.dataset.glow);
+    renderGlowButtons();
+  });
+});
+
+// Daily-target controls
+document.getElementById('h-target-minus').addEventListener('click', () => {
+  selTarget = Math.max(1, selTarget - 1); renderTargetUI();
+});
+document.getElementById('h-target-plus').addEventListener('click', () => {
+  selTarget = Math.min(20, selTarget + 1); renderTargetUI();
+});
+document.querySelectorAll('.tpreset').forEach(b => {
+  b.addEventListener('click', () => { selTarget = parseInt(b.dataset.t); renderTargetUI(); });
+});
+
+// Image / GIF upload
+document.getElementById('h-image').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (f.size > 2 * 1024 * 1024) { toast('Image too big (max 2MB)'); e.target.value = ''; return; }
+  const r = new FileReader();
+  r.onload = () => { selImage = r.result; setImagePreview(); toast('Image set — will replace emoji'); };
+  r.readAsDataURL(f);
+});
+document.getElementById('h-image-clear').addEventListener('click', () => {
+  selImage = null; document.getElementById('h-image').value = ''; setImagePreview();
+});
+
+// ==================== GOALS ====================
+let editingGoal = null;
+function openGoalModal(goal) {
+  editingGoal = goal || null;
+  document.getElementById('goal-modal-title').textContent = goal ? 'Edit Goal' : 'New Goal';
+  document.getElementById('g-name').value = goal?.name || '';
+  document.getElementById('g-why').value = goal?.why || '';
+  document.getElementById('g-target').value = goal?.target || '';
+  document.getElementById('g-unit').value = goal?.unit || '';
+  document.getElementById('g-current').value = goal?.current || '';
+  document.getElementById('g-delete').style.display = goal ? 'block' : 'none';
+  document.getElementById('goal-modal').classList.add('show');
+}
+function closeGoalModal() { document.getElementById('goal-modal').classList.remove('show'); }
+function deleteGoal() {
+  state.goals = state.goals.filter(g => g.id !== editingGoal.id);
+  save(); closeGoalModal(); render(); toast('Goal deleted');
+}
+function saveGoal() {
+  const name = document.getElementById('g-name').value.trim();
+  const target = parseFloat(document.getElementById('g-target').value) || 0;
+  const current = parseFloat(document.getElementById('g-current').value) || 0;
+  const why = document.getElementById('g-why').value.trim();
+  const unit = document.getElementById('g-unit').value.trim() || 'units';
+  if (!name) return toast('Title required');
+  if (editingGoal) Object.assign(editingGoal, { name, target, current, why, unit });
+  else state.goals.push({ id: uid(), name, target, current, why, unit });
+  save(); closeGoalModal(); render(); toast('Saved');
+}
+function renderGoals() {
+  const list = document.getElementById('goals-list');
+  list.innerHTML = '';
+  if (state.goals.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">🎯</div><div>No goals yet. Tap + to set one.</div></div>';
+    return;
+  }
+  state.goals.forEach(g => {
+    const pct = g.target ? Math.min(100, Math.round((g.current / g.target) * 100)) : 0;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.cursor = 'pointer';
+    card.onclick = () => openGoalModal(g);
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-title">🎯 ${g.name}</div>
+        <div class="goal-tag">↗ ACTIVE</div>
+      </div>
+      <div style="color:var(--text-dim);font-size:13px;margin-bottom:6px;">${g.why || ''}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:13px;color:var(--text-dim);">${g.current} / ${g.target} ${g.unit}</span>
+        <span class="pct">${pct}%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ==================== TASKS ====================
+function addTask() {
+  const inp = document.getElementById('new-task');
+  const t = inp.value.trim();
+  if (!t) return;
+  state.tasks.unshift({ id: uid(), text: t, done: false });
+  inp.value = ''; save(); renderTasks(); updateHome();
+}
+document.getElementById('new-task').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+
+function toggleTask(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (t) { t.done = !t.done; save(); renderTasks(); updateHome(); }
+}
+function delTask(id) {
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  save(); renderTasks(); updateHome();
+}
+function renderTasks() {
+  const list = document.getElementById('tasks-list');
+  if (state.tasks.length === 0) {
+    list.innerHTML = '<div class="empty" style="padding:24px"><div>No tasks. Add one below ↓</div></div>';
+    return;
+  }
+  list.innerHTML = state.tasks.map(t => `
+    <div class="task ${t.done?'done':''}">
+      <div class="task-check" onclick="toggleTask('${t.id}')">${t.done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+      <div class="task-text" onclick="toggleTask('${t.id}')">${escapeHtml(t.text)}</div>
+      <div class="task-del" onclick="delTask('${t.id}')">×</div>
+    </div>
+  `).join('');
+}
+function escapeHtml(s) { return s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
+// ==================== TIMER ====================
+let timerSec = 25 * 60;
+let timerRunning = false;
+let timerInt = null;
+let timerMode = 25;
+
+document.querySelectorAll('.timer-mode button').forEach(b => {
+  b.onclick = () => {
+    if (timerRunning) return;
+    document.querySelectorAll('.timer-mode button').forEach(x => x.classList.toggle('active', x === b));
+    timerMode = parseInt(b.dataset.mode);
+    timerSec = timerMode * 60;
+    updateTimer();
+  };
+});
+document.getElementById('timer-start').onclick = () => {
+  if (timerRunning) {
+    clearInterval(timerInt); timerRunning = false;
+    document.getElementById('timer-start').textContent = 'Resume';
+    document.getElementById('timer-status').textContent = 'Paused';
+  } else {
+    timerRunning = true;
+    document.getElementById('timer-start').textContent = 'Pause';
+    document.getElementById('timer-status').textContent = timerMode === 25 ? 'Focusing...' : 'Break time';
+    timerInt = setInterval(() => {
+      timerSec--; updateTimer();
+      if (timerSec <= 0) {
+        clearInterval(timerInt); timerRunning = false;
+        if (timerMode === 25) { state.pomoCount++; save(); }
+        document.getElementById('timer-start').textContent = 'Start';
+        document.getElementById('timer-status').textContent = 'Complete! 🎉';
+        document.getElementById('pomo-count').textContent = state.pomoCount;
+        toast('Session complete!');
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        timerSec = timerMode * 60; updateTimer();
+      }
+    }, 1000);
+  }
+};
+document.getElementById('timer-reset').onclick = () => {
+  clearInterval(timerInt); timerRunning = false;
+  timerSec = timerMode * 60; updateTimer();
+  document.getElementById('timer-start').textContent = 'Start';
+  document.getElementById('timer-status').textContent = 'Ready to focus';
+};
+function updateTimer() {
+  const m = Math.floor(timerSec / 60); const s = timerSec % 60;
+  document.getElementById('timer-display').textContent =
+    `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ==================== THEMES ====================
+const THEMES = {
+  dotwise: {
+    name: 'Dotwise', dots: ['#1f1e1d','#2b2826','#d97757'],
+    vars: { '--bg':'#1f1e1d','--bg-2':'#262422','--card':'#2b2826','--card-2':'#34302d','--border':'#423d39','--text':'#f5f1ec','--text-dim':'#b3aaa1','--text-faint':'#7d756c','--accent':'#d97757','--accent-2':'#e3927a' }
+  },
+  clayLight: {
+    name: 'Clay Light', dots: ['#f5f1ec','#ffffff','#d97757'],
+    vars: { '--bg':'#f5f1ec','--bg-2':'#ffffff','--card':'#ffffff','--card-2':'#f0ebe4','--border':'#e4ddd3','--text':'#2b2826','--text-dim':'#6f655c','--text-faint':'#a89e93','--accent':'#cc6a48','--accent-2':'#d97757' }
+  },
+  dark: {
+    name: 'Dark', dots: ['#0a0e1a','#161d33','#6366f1'],
+    vars: { '--bg':'#0a0e1a','--bg-2':'#111729','--card':'#161d33','--card-2':'#1c2541','--border':'#243056','--text':'#e8ecf7','--text-dim':'#8b94b5','--text-faint':'#5a6485','--accent':'#6366f1','--accent-2':'#818cf8' }
+  },
+  clear: {
+    name: 'Clear Light', dots: ['#f7f8fc','#ffffff','#6366f1'],
+    vars: { '--bg':'#f7f8fc','--bg-2':'#ffffff','--card':'#ffffff','--card-2':'#f1f3f9','--border':'#e3e6f0','--text':'#1a1d2e','--text-dim':'#5a6485','--text-faint':'#9aa3bd','--accent':'#6366f1','--accent-2':'#818cf8' }
+  },
+  tinted: {
+    name: 'Tinted', dots: ['#1a0b2e','#2d1b4e','#c084fc'],
+    vars: { '--bg':'#1a0b2e','--bg-2':'#241340','--card':'#2d1b4e','--card-2':'#3a2560','--border':'#4a3373','--text':'#f3e8ff','--text-dim':'#b896d6','--text-faint':'#8166a8','--accent':'#c084fc','--accent-2':'#d8b4fe' }
+  },
+  metalDark: {
+    name: 'Metal Dark', dots: ['#0d0d0f','#1a1a1f','#a8a8b0'],
+    vars: { '--bg':'#0d0d0f','--bg-2':'#16161a','--card':'#1a1a1f','--card-2':'#252530','--border':'#33333f','--text':'#e8e8ec','--text-dim':'#8a8a96','--text-faint':'#55555f','--accent':'#a8a8b0','--accent-2':'#c8c8d0' }
+  },
+  metalLight: {
+    name: 'Metal Light', dots: ['#e8e9ed','#f5f5f8','#52525b'],
+    vars: { '--bg':'#e8e9ed','--bg-2':'#f0f1f5','--card':'#f5f5f8','--card-2':'#fafafc','--border':'#d4d4dc','--text':'#1f1f24','--text-dim':'#52525b','--text-faint':'#9a9aa3','--accent':'#52525b','--accent-2':'#71717a' }
+  },
+  liquid: {
+    name: 'Liquid', dots: ['#0c1e3f','#1e3a8a','#22d3ee'],
+    vars: { '--bg':'#0c1e3f','--bg-2':'#152c5c','--card':'#1e3a8a','--card-2':'#2746a0','--border':'#3b5fc4','--text':'#e0f2fe','--text-dim':'#93c5fd','--text-faint':'#6088c4','--accent':'#22d3ee','--accent-2':'#67e8f9' }
+  },
+  midnight: {
+    name: 'Midnight', dots: ['#000000','#0a0a0f','#7c3aed'],
+    vars: { '--bg':'#000000','--bg-2':'#06060a','--card':'#0a0a0f','--card-2':'#13131a','--border':'#1f1f2a','--text':'#fafafa','--text-dim':'#a1a1aa','--text-faint':'#52525b','--accent':'#7c3aed','--accent-2':'#a78bfa' }
+  },
+  forest: {
+    name: 'Forest', dots: ['#0a1f15','#14342a','#34d399'],
+    vars: { '--bg':'#0a1f15','--bg-2':'#0f2a1f','--card':'#14342a','--card-2':'#1c4636','--border':'#2a5f47','--text':'#d1fae5','--text-dim':'#86d9b1','--text-faint':'#4a8a6e','--accent':'#34d399','--accent-2':'#6ee7b7' }
+  },
+  sunset: {
+    name: 'Sunset', dots: ['#2d1b1b','#4a2929','#fb923c'],
+    vars: { '--bg':'#2d1b1b','--bg-2':'#3a2222','--card':'#4a2929','--card-2':'#5e3434','--border':'#7a4242','--text':'#fef3c7','--text-dim':'#fcd5b5','--text-faint':'#a87555','--accent':'#fb923c','--accent-2':'#fdba74' }
+  }
+};
+
+const ACCENT_COLORS = ['#d97757','#e8985c','#eab308','#6bbf8a','#5cc4c4','#6fa8dc','#6366f1','#b88fd8','#e088ad','#f0876a'];
+
+function applyTheme(themeKey, customAccent) {
+  const theme = THEMES[themeKey] || THEMES.dark;
+  Object.entries(theme.vars).forEach(([k,v]) => document.documentElement.style.setProperty(k, v));
+  if (customAccent) {
+    document.documentElement.style.setProperty('--accent', customAccent);
+    // derive lighter accent-2 (just lighten)
+    document.documentElement.style.setProperty('--accent-2', customAccent);
+  }
+  // Apply custom overrides if any
+  if (state.customTheme) {
+    Object.entries(state.customTheme).forEach(([k,v]) => {
+      if (v) document.documentElement.style.setProperty(k, v);
+    });
+  }
+  state.theme = themeKey;
+  if (customAccent) state.accent = customAccent;
+  save();
+  renderThemeGrid();
+}
+
+function renderThemeGrid() {
+  const grid = document.getElementById('theme-grid');
+  if (!grid) return;
+  grid.innerHTML = Object.entries(THEMES).map(([k,t]) => `
+    <div class="theme-card ${state.theme===k?'active':''}" data-theme="${k}" style="background:${t.vars['--card']};">
+      <div class="tdots">
+        ${t.dots.map(d => `<div class="tdot" style="background:${d}"></div>`).join('')}
+      </div>
+      <div class="tname" style="color:${t.vars['--text']}">${t.name}</div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.theme-card').forEach(el => {
+    el.onclick = () => { applyTheme(el.dataset.theme); toast(THEMES[el.dataset.theme].name + ' theme'); };
+  });
+}
+
+function renderAccentRow() {
+  const row = document.getElementById('accent-row');
+  if (!row) return;
+  row.innerHTML = ACCENT_COLORS.map(c =>
+    `<div class="color-dot ${c===state.accent?'selected':''}" style="background:${c}" data-c="${c}"></div>`
+  ).join('');
+  row.querySelectorAll('.color-dot').forEach(el => {
+    el.onclick = () => {
+      state.accent = el.dataset.c;
+      document.documentElement.style.setProperty('--accent', state.accent);
+      document.documentElement.style.setProperty('--accent-2', state.accent);
+      document.getElementById('accent-preview').style.background = state.accent;
+      document.getElementById('accent-hex').value = state.accent;
+      save(); renderAccentRow();
+    };
+  });
+}
+
+function renderCustomRow() {
+  const row = document.getElementById('custom-row');
+  if (!row) return;
+  const fields = [
+    ['--bg','Background'],['--card','Card'],['--text','Text'],['--accent','Accent']
+  ];
+  const cur = getComputedStyle(document.documentElement);
+  row.innerHTML = fields.map(([k,label]) => {
+    const val = (state.customTheme && state.customTheme[k]) || cur.getPropertyValue(k).trim() || '#000000';
+    return `<div class="custom-pick">
+      <label>${label}</label>
+      <input type="color" data-var="${k}" value="${val}" />
+    </div>`;
+  }).join('');
+  row.querySelectorAll('input[type="color"]').forEach(el => {
+    el.oninput = () => {
+      state.customTheme = state.customTheme || {};
+      state.customTheme[el.dataset.var] = el.value;
+      document.documentElement.style.setProperty(el.dataset.var, el.value);
+      save();
+    };
+  });
+}
+
+// ==================== HOME ====================
+// Aggregate contribution heatmap across ALL habits for the trailing ~12 months.
+function renderHomeYear() {
+  const wrap = document.getElementById('home-year');
+  if (!wrap) return;
+  if (state.habits.length === 0) { wrap.innerHTML = ''; return; }
+
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+  // 52 weeks back, aligned to Monday so the grid columns are clean weeks
+  const start = new Date(today0);
+  start.setDate(start.getDate() - 363);
+  while (start.getDay() !== 1) start.setDate(start.getDate() - 1);
+
+  const habitCount = state.habits.length;
+  const totalDays = Math.floor((today0 - start) / 86400000) + 1;
+  const weeks = Math.ceil(totalDays / 7);
+  const gridW = weeks * 15; // 12px cell + 3px gap
+
+  const doneCount = ds => {
+    let c = 0;
+    for (const h of state.habits) if (dayDone(h.id, ds)) c++;
+    return c;
+  };
+
+  let cells = '', totalDone = 0, activeDays = 0;
+  for (let i = 0; i < totalDays; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const ds = fmtDate(d);
+    const c = doneCount(ds);
+    if (c > 0) { totalDone += c; activeDays++; }
+    if (c === 0) {
+      cells += `<div class="cell" title="${ds} — none"></div>`;
+    } else {
+      const ratio = c / habitCount;
+      const lvl = ratio >= .75 ? 4 : ratio >= .5 ? 3 : ratio >= .25 ? 2 : 1;
+      cells += `<div class="cell lvl${lvl}" style="background:var(--green);" title="${ds} — ${c}/${habitCount} habits"></div>`;
+    }
+  }
+  // pad the final partial week so the 7-row grid stays rectangular
+  const rem = totalDays % 7;
+  if (rem) for (let i = rem; i < 7; i++) cells += `<div class="cell" style="opacity:.12;"></div>`;
+
+  // month labels spread across the full grid width
+  let months = '';
+  const cur = new Date(start.getFullYear(), start.getMonth(), 1);
+  const end = new Date(today0.getFullYear(), today0.getMonth(), 1);
+  while (cur <= end) {
+    months += `<span>${cur.toLocaleDateString('en', { month: 'short' })}</span>`;
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  const rate = Math.round((totalDone / (totalDays * habitCount)) * 100);
+
+  wrap.innerHTML = `
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><span class="card-emoji">📅</span><span>Yearly progress</span></div>
+        <div class="card-meta">
+          <div>✅ ${totalDone}</div>
+          <div>${activeDays}d active</div>
+          <div class="pct" style="color:var(--green);">${isFinite(rate) ? rate : 0}%</div>
+        </div>
+      </div>
+      <div class="heatmap-wrap">
+        <div class="heatmap-months" style="min-width:${gridW}px;">${months}</div>
+        <div class="heatmap" style="min-width:${gridW}px;">${cells}</div>
+      </div>
+    </div>
+  `;
+}
+
+function updateHome() {
+  const t = today();
+  const habitsDone = state.habits.filter(h => dayDone(h.id, t)).length;
+  document.getElementById('stat-habits').textContent = `${habitsDone}/${state.habits.length}`;
+  // Activities today = total count of all activities logged today (incl. multi-count)
+  const activitiesToday = state.habits.reduce((sum, h) => sum + dayCount(h.id, t), 0);
+  document.getElementById('stat-tasks').textContent = activitiesToday;
+  document.getElementById('stat-goals').textContent = state.goals.length;
+  const longest = Math.max(0, ...state.habits.map(h => streakOf(h.id)));
+  document.getElementById('stat-streak').textContent = longest;
+  document.getElementById('pomo-count').textContent = state.pomoCount;
+
+  // Habits card: green when all done today, yellow when some pending
+  const allHabitsDone = state.habits.length > 0 && habitsDone === state.habits.length;
+  const habitsCard = document.getElementById('card-habits');
+  habitsCard.classList.toggle('clear', allHabitsDone);
+  habitsCard.classList.toggle('pending', state.habits.length > 0 && !allHabitsDone);
+  // Activities card: green when all habits complete, otherwise neutral flow
+  const actCard = document.getElementById('card-tasks');
+  actCard.classList.toggle('clear', allHabitsDone);
+  actCard.classList.remove('pending');
+
+  renderHomeYear();
+
+  const list = document.getElementById('home-today');
+  list.innerHTML = '';
+  if (state.habits.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">✨</div><div>Welcome! Create your first habit.</div></div>';
+    return;
+  }
+  state.habits.forEach(h => {
+    const tgt = targetOf(h);
+    const cnt = dayCount(h.id, t);
+    const done = cnt >= tgt;
+    const partial = cnt > 0 && !done;
+    const badgeInner = done
+      ? '✓'
+      : (tgt > 1 ? `<span style="font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;">${cnt}</span>` : '');
+    const dots = tgt > 1 ? dotsHTML(cnt, tgt, h.color) : '';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-head" style="margin:0">
+        <div class="card-title">${iconHTML(h)}<span style="color:${h.color}">${h.name}${tgt>1?` <span style="color:var(--text-faint);font-size:12px;">×${tgt}</span>`:''}</span></div>
+        ${dots}
+        <div class="check-badge" style="background:${done?h.color:(partial?h.color+'55':'var(--card-2)')};border:1.5px solid ${done?'transparent':'var(--border)'};color:${done||partial?'white':'var(--text-faint)'};width:36px;height:36px;border-radius:10px;" onclick="toggleLog('${h.id}','${t}')">
+          ${badgeInner}
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// ==================== TOAST ====================
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// ==================== RENDER ====================
+function render() {
+  if (currentPage === 'home') updateHome();
+  if (currentPage === 'habits') renderHabits();
+  if (currentPage === 'goals') renderGoals();
+  if (currentPage === 'tasks') renderTasks();
+  if (currentPage === 'settings') {
+    renderThemeGrid(); renderAccentRow(); renderCustomRow();
+    document.getElementById('accent-preview').style.background = state.accent;
+    document.getElementById('accent-hex').value = state.accent;
+  }
+  updateHome();
+}
+
+// Settings page wiring
+document.getElementById('accent-hex').addEventListener('input', e => {
+  const v = e.target.value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    state.accent = v;
+    document.documentElement.style.setProperty('--accent', v);
+    document.documentElement.style.setProperty('--accent-2', v);
+    document.getElementById('accent-preview').style.background = v;
+    save(); renderAccentRow();
+  }
+});
+
+document.getElementById('reset-theme').onclick = () => {
+  state.customTheme = null;
+  applyTheme(state.theme);
+  renderCustomRow();
+  toast('Theme reset');
+};
+
+document.getElementById('export-data').onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `dot-backup-${today()}.json`; a.click();
+  URL.revokeObjectURL(url);
+  toast('Exported');
+};
+
+document.getElementById('import-data').onclick = () => {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json';
+  inp.onchange = () => {
+    const f = inp.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        state = { ...state, ...JSON.parse(r.result) };
+        save(); applyTheme(state.theme); render();
+        toast('Imported successfully');
+      } catch(e) { toast('Invalid file'); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+};
+
+document.getElementById('clear-data').onclick = () => {
+  if (!confirm('Delete EVERYTHING? This cannot be undone.')) return;
+  localStorage.removeItem('dot-app');
+  location.reload();
+};
+
+// ==================== INIT ====================
+load();
+applyTheme(state.theme || 'dark');
+if (state.accent) {
+  document.documentElement.style.setProperty('--accent', state.accent);
+  document.documentElement.style.setProperty('--accent-2', state.accent);
+}
+render();
+
+// close modals on background click
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.onclick = e => { if (e.target === m) m.classList.remove('show'); };
+});
+
+// ==================== CLOUD SYNC + AUTH (Supabase) ====================
+const SUPABASE_URL = 'https://zoialngturzqwjgyhbvs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvaWFsbmd0dXJ6cXdqZ3loYnZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA0MDksImV4cCI6MjA5NzQ0NjQwOX0.VjRV5eNSA0MIJF3Y3gUhC3sPSlybae7rGcdDzkl93hg';
+
+let sb = null, currentUser = null, pushTimer = null, pulling = false;
+try { if (window.supabase && SUPABASE_URL) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { console.warn('Supabase init failed', e); }
+
+function setAuthAvatar() {
+  const av = document.getElementById('avatar');
+  if (currentUser) {
+    av.textContent = (currentUser.email || '?')[0].toUpperCase();
+    av.style.background = 'linear-gradient(135deg, var(--green), var(--accent))';
+  } else {
+    av.textContent = 'D';
+    av.style.background = 'linear-gradient(135deg, var(--accent), var(--accent-2))';
+  }
+}
+function closeAuth() { document.getElementById('auth-modal').classList.remove('show'); }
+function openAuthModal() {
+  const lo = document.getElementById('auth-loggedout');
+  const li = document.getElementById('auth-loggedin');
+  if (currentUser) {
+    lo.style.display = 'none'; li.style.display = 'block';
+    document.getElementById('auth-who').textContent = currentUser.email || currentUser.id;
+  } else {
+    lo.style.display = 'block'; li.style.display = 'none';
+    document.getElementById('auth-msg').textContent = '';
+  }
+  document.getElementById('auth-modal').classList.add('show');
+}
+const avatarEl = document.getElementById('avatar');
+avatarEl.style.cursor = 'pointer';
+avatarEl.onclick = openAuthModal;
+
+async function pushNow() {
+  if (!sb || !currentUser) return;
+  try {
+    const { error } = await sb.from('app_state').upsert({
+      user_id: currentUser.id, data: state, updated_at: new Date().toISOString()
+    });
+    const st = document.getElementById('auth-sync-status');
+    if (st) st.textContent = error ? ('Sync error: ' + error.message) : 'Synced just now';
+  } catch (e) { console.warn('push failed', e); }
+}
+function schedulePush() {
+  if (!sb || !currentUser || pulling) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushNow, 1200);
+}
+async function pullCloud() {
+  if (!sb || !currentUser) return;
+  try {
+    const { data, error } = await sb.from('app_state').select('data').eq('user_id', currentUser.id).maybeSingle();
+    if (error) { console.warn(error); return; }
+    if (data && data.data && Array.isArray(data.data.habits) && data.data.habits.length) {
+      pulling = true;
+      state = { ...state, ...data.data };
+      localStorage.setItem('dot-app', JSON.stringify(state));
+      pulling = false;
+      applyTheme(state.theme || 'dotwise');
+      if (state.accent) {
+        document.documentElement.style.setProperty('--accent', state.accent);
+        document.documentElement.style.setProperty('--accent-2', state.accent);
+      }
+      render();
+      toast('Synced from cloud');
+    } else {
+      await pushNow(); // first time — upload local data
+    }
+  } catch (e) { console.warn('pull failed', e); }
+}
+
+// Auth button handlers
+document.getElementById('auth-login').onclick = async () => {
+  if (!sb) return;
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const msg = document.getElementById('auth-msg');
+  if (!email || !pass) { msg.textContent = 'Enter email & password'; return; }
+  msg.textContent = 'Logging in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { msg.textContent = error.message; return; }
+  msg.textContent = '';
+};
+document.getElementById('auth-signup').onclick = async () => {
+  if (!sb) return;
+  const email = document.getElementById('auth-email').value.trim();
+  const pass = document.getElementById('auth-pass').value;
+  const msg = document.getElementById('auth-msg');
+  if (!email || pass.length < 6) { msg.textContent = 'Email + password (min 6 chars)'; return; }
+  msg.textContent = 'Creating account…';
+  const { data, error } = await sb.auth.signUp({ email, password: pass });
+  if (error) { msg.textContent = error.message; return; }
+  if (data.session) { msg.textContent = ''; }
+  else { msg.textContent = 'Account made! Check your email to confirm, then log in.'; }
+};
+document.getElementById('auth-logout').onclick = async () => {
+  if (!sb) return;
+  await sb.auth.signOut();
+  closeAuth(); toast('Logged out');
+};
+document.getElementById('auth-syncnow').onclick = async () => { await pushNow(); await pullCloud(); toast('Synced'); };
+document.getElementById('auth-close2').onclick = closeAuth;
+document.getElementById('auth-offline').onclick = () => { closeAuth(); toast('Using offline mode on this device'); };
+
+if (sb) {
+  sb.auth.onAuthStateChange((event, session) => {
+    currentUser = session && session.user ? session.user : null;
+    setAuthAvatar();
+    if (currentUser) { closeAuth(); pullCloud(); }
+  });
+  sb.auth.getSession().then(({ data }) => {
+    currentUser = data.session && data.session.user ? data.session.user : null;
+    setAuthAvatar();
+    if (currentUser) pullCloud();
+  });
+}
+
+// ==================== PWA service worker ====================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW failed', e));
+  });
+}
+</script>
+</body>
+</html>
