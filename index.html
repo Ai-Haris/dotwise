@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#1f1e1d" />
+<meta name="theme-color" content="#0a0e1a" />
 <title>Dotwise — Habits, Goals & Focus</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23d97757'/><circle cx='34' cy='50' r='9' fill='%23fff'/><circle cx='62' cy='50' r='9' fill='%23fff' opacity='0.55'/></svg>" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%236366f1'/><circle cx='34' cy='50' r='9' fill='%23fff'/><circle cx='62' cy='50' r='9' fill='%23fff' opacity='0.55'/></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
@@ -49,7 +49,7 @@
     min-height: 100dvh;
     max-width: 480px;
     margin: 0 auto;
-    padding-bottom: 100px;
+    padding-bottom: calc(130px + env(safe-area-inset-bottom));
     position: relative;
   }
   /* On PC: center the mobile column with side rails so it reads as a phone app */
@@ -933,7 +933,7 @@ let state = {
   pomoCount: 0,
   pomoDate: '',
   theme: 'dark',
-  accent: '#d97757',
+  accent: '#6366f1',
   customTheme: null
 };
 
@@ -943,12 +943,12 @@ function load() {
     if (saved) state = { ...state, ...JSON.parse(saved) };
   } catch(e) {}
   if (state.pomoDate !== today()) { state.pomoCount = 0; state.pomoDate = today(); }
-  // Branding migration → Dark default theme (run once)
-  if (!state.brand || state.brand < 3) {
+  // Branding migration → Dark theme + matching indigo accent (run once)
+  if (!state.brand || state.brand < 4) {
     state.theme = 'dark';
-    state.accent = '#d97757';
+    state.accent = '#6366f1';
     state.customTheme = null;
-    state.brand = 3;
+    state.brand = 4;
   }
   if (state.habits.length === 0) seedDemo();
 }
