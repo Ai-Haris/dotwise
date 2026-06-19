@@ -1,5 +1,5 @@
 // Dotwise service worker — offline-first cache with auto-update
-const VERSION = 'dotwise-v1';
+const VERSION = 'dotwise-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,10 @@ const ASSETS = [
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
+});
+
+self.addEventListener('message', e => {
+  if (e.data === 'skip') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {

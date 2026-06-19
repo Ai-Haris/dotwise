@@ -66,10 +66,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 18px 6px;
+    padding: calc(14px + env(safe-area-inset-top)) 18px 6px;
     position: sticky;
     top: 0;
-    background: linear-gradient(180deg, var(--bg) 70%, transparent);
+    background: linear-gradient(180deg, var(--bg) 80%, transparent);
     z-index: 50;
     backdrop-filter: blur(10px);
   }
@@ -2032,8 +2032,22 @@ if (sb) {
 
 // ==================== PWA service worker ====================
 if ('serviceWorker' in navigator) {
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    location.reload(); // a new version took over — reload to get fresh app
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW failed', e));
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (nw) nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) nw.postMessage('skip');
+        });
+      });
+      reg.update();
+    }).catch(e => console.warn('SW failed', e));
   });
 }
 </script>
