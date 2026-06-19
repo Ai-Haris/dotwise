@@ -1026,6 +1026,14 @@ document.getElementById('open-settings').onclick = () => {
   render();
 };
 
+// Header avatar (login/account) + notification bell — wired early so they always work
+document.getElementById('avatar').onclick = () => {
+  if (typeof openAuthModal === 'function') openAuthModal();
+  else document.getElementById('auth-modal').classList.add('show');
+};
+const bellBtn = document.querySelector('.icon-btn[title="Notifications"]');
+if (bellBtn) bellBtn.onclick = () => toast('No new notifications');
+
 // ==================== HABITS ====================
 // ----- Icon + dots helpers -----
 function iconHTML(h) {
