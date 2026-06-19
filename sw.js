@@ -1,5 +1,5 @@
 // Dotwise service worker — offline-first cache with auto-update
-const VERSION = 'dotwise-v3';
+const VERSION = 'dotwise-v4';
 const ASSETS = [
   './',
   './index.html',
