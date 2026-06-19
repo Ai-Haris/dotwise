@@ -918,6 +918,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// Cloud/auth vars declared early (var) so they're never in the temporal dead zone
+var sb = null, currentUser = null, pushTimer = null, pulling = false;
+
 // ==================== STATE ====================
 const COLORS = ['#f87171','#fb923c','#facc15','#34d399','#22d3ee','#60a5fa','#818cf8','#c084fc','#f472b6'];
 const EMOJIS = ['💪','📖','💧','👟','🧘','✍️','🧠','🍎','😴','☀️','🎯','💻','🎨','🎵','🌱','🏃','☕','🚭','💰','📿'];
@@ -1918,7 +1921,6 @@ document.querySelectorAll('.modal-bg').forEach(m => {
 const SUPABASE_URL = 'https://zoialngturzqwjgyhbvs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvaWFsbmd0dXJ6cXdqZ3loYnZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA0MDksImV4cCI6MjA5NzQ0NjQwOX0.VjRV5eNSA0MIJF3Y3gUhC3sPSlybae7rGcdDzkl93hg';
 
-let sb = null, currentUser = null, pushTimer = null, pulling = false;
 try { if (window.supabase && SUPABASE_URL) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { console.warn('Supabase init failed', e); }
 
 function setAuthAvatar() {
