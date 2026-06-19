@@ -940,19 +940,23 @@ let state = {
   customTheme: null
 };
 
-function load() {
-  try {
-    const saved = localStorage.getItem('dot-app');
-    if (saved) state = { ...state, ...JSON.parse(saved) };
-  } catch(e) {}
-  if (state.pomoDate !== today()) { state.pomoCount = 0; state.pomoDate = today(); }
-  // Branding migration → Dark theme + matching indigo accent (run once)
+// Force latest branding/theme on any state (local OR cloud) — runs once per version
+function migrateState() {
   if (!state.brand || state.brand < 4) {
     state.theme = 'dark';
     state.accent = '#6366f1';
     state.customTheme = null;
     state.brand = 4;
   }
+}
+
+function load() {
+  try {
+    const saved = localStorage.getItem('dot-app');
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+  } catch(e) {}
+  if (state.pomoDate !== today()) { state.pomoCount = 0; state.pomoDate = today(); }
+  migrateState();
   if (state.habits.length === 0) seedDemo();
 }
 function save() {
@@ -1976,9 +1980,10 @@ async function pullCloud() {
     if (data && data.data && Array.isArray(data.data.habits) && data.data.habits.length) {
       pulling = true;
       state = { ...state, ...data.data };
+      migrateState(); // upgrade old cloud state to latest theme/layout
       localStorage.setItem('dot-app', JSON.stringify(state));
       pulling = false;
-      applyTheme(state.theme || 'dotwise');
+      applyTheme(state.theme || 'dark');
       if (state.accent) {
         document.documentElement.style.setProperty('--accent', state.accent);
         document.documentElement.style.setProperty('--accent-2', state.accent);
